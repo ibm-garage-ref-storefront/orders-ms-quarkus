@@ -36,12 +36,6 @@ public class OrdersResource {
 	public OrdersResource(OrderRepository orderRepository) {
 	  this.orderRepository = orderRepository;
 	}
-
-    @GET
-    @Path("/resource")
-    public String getRequest() {
-        return "OrdersResource response";
-    }
     
     @GET
     @RolesAllowed({"user","admin"})
