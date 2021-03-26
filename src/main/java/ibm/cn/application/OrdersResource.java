@@ -21,6 +21,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jboss.logging.Logger;
 
 import ibm.cn.application.model.Order;
 import ibm.cn.application.repository.OrderRepository;
@@ -30,6 +31,8 @@ public class OrdersResource {
 	
 	@Inject
     JsonWebToken jwt;
+	
+	private static final Logger LOG = Logger.getLogger(OrdersResource.class);
 	
 	private final OrderRepository orderRepository;
 
@@ -47,8 +50,8 @@ public class OrdersResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Missing JWT").build();
             }
             else {
-            	System.out.println("MP JWT config message: " + jwt.getName() );
-                System.out.println("MP JWT getIssuedAtTime " + jwt.getIssuedAtTime() );
+            	LOG.info("MP JWT config message: " + jwt.getName() );
+            	LOG.info("MP JWT getIssuedAtTime " + jwt.getIssuedAtTime() );
             }
             final String customerId = jwt.getName();
             if (customerId == null) {
@@ -57,7 +60,7 @@ public class OrdersResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Bearer Token: Missing customer ID from jwt: " + jwt.getRawToken()).build();
             }
 
-            System.out.println("caller: " + customerId);
+            LOG.info("caller: " + customerId);
 
             final List<Order> orders = orderRepository.findByCustomerIdOrderByDateDesc(customerId);
 
@@ -82,8 +85,8 @@ public class OrdersResource {
 	    		return Response.status(Response.Status.BAD_REQUEST).entity("Missing JWT").build();
 	    	}
 	    	else {
-	    		System.out.println("MP JWT config message: " + jwt.getName() );
-	    		System.out.println("MP JWT getIssuedAtTime " + jwt.getIssuedAtTime() );
+	    		LOG.info("MP JWT config message: " + jwt.getName() );
+	    		LOG.info("MP JWT getIssuedAtTime " + jwt.getIssuedAtTime() );
 	    	}
 	          
 	    	final String customerId = jwt.getName();
@@ -94,7 +97,7 @@ public class OrdersResource {
 	              return Response.status(Response.Status.BAD_REQUEST).entity("Invalid Bearer Token: Missing customer ID from jwt: " + jwt.getRawToken()).build();
 	        }
 	
-	    	System.out.println("caller: " + customerId);
+	    	LOG.info("caller: " + customerId);
 	    	final List<Order> orders = orderRepository.findByOrderId(id);
 	          
 	    	return Response.ok(orders).build();
@@ -132,14 +135,14 @@ public class OrdersResource {
 
             payload.setId(id);
 
-            System.out.println("New order: " + payload.toString());
+            LOG.info("New order: " + payload.toString());
 
             orderRepository.putOrderDetails(payload);
 
             UriBuilder builder = uriInfo.getAbsolutePathBuilder();
             builder.path(payload.getId());
            
-            System.out.println(builder.build().toString());
+            LOG.info(builder.build().toString());
             
             return Response.created(builder.build()).entity(payload).build();
 
