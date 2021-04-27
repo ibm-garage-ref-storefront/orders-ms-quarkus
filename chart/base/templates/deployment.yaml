@@ -72,21 +72,16 @@ spec:
                 secretKeyRef:
                   name: orders-mariadb-secret
                   key: mariadb-password
-            - name: KEYCLOAK_URL
-              valueFrom:
-                secretKeyRef:
-                  name: keycloak-creds
-                  key: keycloak-url
             - name: KEYCLOAK_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: keycloak-creds
-                  key: client-id
+                  name: ibm-java-env
+                  key: KEYCLOAK_CLIENT_ID
             - name: KEYCLOAK_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: keycloak-creds
-                  key: client-secret
+                  name: ibm-java-env
+                  key: KEYCLOAK_CLIENT_SECRET
             - name: SONAR_URL
               valueFrom:
                 secretKeyRef:
