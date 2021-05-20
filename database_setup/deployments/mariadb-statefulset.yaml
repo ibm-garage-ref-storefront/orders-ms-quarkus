@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: orders-mariadb
+  labels:
+    app: "orders-mariadb"
+spec:
+  selector:
+    matchLabels:
+      app: orders-mariadb
+  serviceName: "orders-mariadb"
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: "orders-mariadb"
+    spec:
+      serviceAccountName: "default"
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app: "orders-mariadb"
+      containers:
+      - name: "mariadb"
+        image: docker.io/bitnami/mariadb:10.1.38
+        imagePullPolicy: "IfNotPresent"
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: orders-mariadb-secret
+              key: mariadb-root-password
+        - name: MARIADB_USER
+          value: "dbuser"
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: orders-mariadb-secret
+              key: mariadb-password
+        - name: MARIADB_DATABASE
+          value: "ordersdb"
+        ports:
+        - name: mysql
+          containerPort: 3306
+        livenessProbe:
+          exec:
+            command: ["sh", "-c", "exec mysqladmin status -uroot -p$MARIADB_ROOT_PASSWORD"]
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command: ["sh", "-c", "exec mysqladmin status -uroot -p$MARIADB_ROOT_PASSWORD"]
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 3
+        resources:
+          {}
+        volumeMounts:
+        - name: data
+          mountPath: /bitnami/mariadb
+        - name: config
+          mountPath: /opt/bitnami/mariadb/conf/my.cnf
+          subPath: my.cnf
+      volumes:
+        - name: config
+          configMap:
+            name: mariadb-configmap
+        - name: data
+          emptyDir: {}

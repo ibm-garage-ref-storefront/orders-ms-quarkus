@@ -1,0 +1,88 @@
+TBD
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: orders-create-table-mariadb
+  labels:
+    app: "orders"
+spec:
+  template:
+    metadata:
+      name: orders-create-table-mariadb
+      labels:
+        app: "orders"
+    spec:
+      restartPolicy: Never
+      initContainers:
+      - name: test-mysql
+        image: docker.io/bitnami/mariadb:10.1.38
+        imagePullPolicy: IfNotPresent
+        command:
+        - "/bin/bash"
+        - "-c"
+        - "until mysql -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASSWORD} -e status; do echo waiting for mysql; sleep 1; done"
+        resources:
+          limits:
+            memory: 384Mi
+          requests:
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsUser: 2000
+        env:
+        - name: MYSQL_HOST
+          value: "orders-mariadb"
+        - name: MYSQL_PORT
+          value: "3307"
+        - name: MYSQL_DATABASE
+          value: "ordersdb"
+        - name: MYSQL_USER
+          value: "dbuser"
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: orders-mariadb-secret
+              key: mariadb-password
+      containers:
+      - name: create-table
+        image: docker.io/bitnami/mariadb:10.1.38
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /config
+          name: config
+          readOnly: true
+        - mountPath: /db-data
+          name: db-data
+        command: ["/bin/bash", "-c"]
+        args: ["cp /config/mysql_data.sql /db-data; sed -i \"s/ordersdb/${MYSQL_DATABASE}/g\" /db-data/mysql_data.sql; until mysql -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u${MYSQL_USER} -p${MYSQL_PASSWORD} </db-data/mysql_data.sql; do echo \"waiting for mysql\"; sleep 1; done; echo \"Table created in database\";"]
+        resources:
+          limits:
+            memory: 384Mi
+          requests:
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsUser: 2000
+        env:
+        - name: MYSQL_HOST
+          value: "orders-mariadb"
+        - name: MYSQL_PORT
+          value: "3307"
+        - name: MYSQL_DATABASE
+          value: "ordersdb"
+        - name: MYSQL_USER
+          value: "dbuser"
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: orders-mariadb-secret
+              key: mariadb-password
+      volumes:
+      - name: config
+        configMap:
+          name: orders-ms-data
+      - name: db-data
+        emptyDir:
+          medium: "Memory"
