@@ -30,7 +30,7 @@ public class OrderRepository {
         	Connection connection = dataSource.getConnection();
         	
             PreparedStatement ps = connection.prepareStatement(
-                    "select orderId,itemId,customerId,count,date from ordersdb.orders where customerId=?");
+                    "select orderId,itemId,customerId,count,date,price from ordersdb.orders where customerId=?");
             ps.setString(1, customerId);
             ResultSet rs = ps.executeQuery();
 
@@ -41,6 +41,7 @@ public class OrderRepository {
                 order.setCustomerId(rs.getString("customerId"));
                 order.setCount(rs.getInt("count"));
                 order.setDate(rs.getTimestamp("date"));
+                order.setPrice(rs.getInt("price"));
                 orderData.add(order);
 
             }
@@ -62,7 +63,7 @@ public class OrderRepository {
         	Connection connection = dataSource.getConnection();
         	
             PreparedStatement ps = connection.prepareStatement(
-                    "select orderId,itemId,customerId,count,date from ordersdb.orders where orderId=?");
+                    "select orderId,itemId,customerId,count,date,price from ordersdb.orders where orderId=?");
             ps.setString(1, id);
             ResultSet rs = ps.executeQuery();
 
@@ -73,7 +74,7 @@ public class OrderRepository {
                 order.setCustomerId(rs.getString("customerId"));
                 order.setCount(rs.getInt("count"));
                 order.setDate(rs.getTimestamp("date"));
-                System.out.println("added");
+                order.setPrice(rs.getInt("price"));
                 orderData.add(order);
             }
         } catch (SQLException e) {
@@ -90,8 +91,8 @@ public class OrderRepository {
         	
         	Connection connection = dataSource.getConnection();
         	
-            String query = " insert into ordersdb.orders (orderId,itemId,customerId,count,date)"
-                    + " values (?, ?, ?, ?, ?)";
+            String query = " insert into ordersdb.orders (orderId,itemId,customerId,count,date,price)"
+                    + " values (?, ?, ?, ?, ?, ?)";
 
             PreparedStatement preparedStmt = connection.prepareStatement(query);
             preparedStmt.setString(1, order.getId());
@@ -99,6 +100,7 @@ public class OrderRepository {
             preparedStmt.setString(3, order.getCustomerId());
             preparedStmt.setInt(4, order.getCount());
             preparedStmt.setTimestamp(5, new java.sql.Timestamp(new java.util.Date().getTime()));
+            preparedStmt.setInt(6, order.getPrice());
 
             preparedStmt.execute();
 

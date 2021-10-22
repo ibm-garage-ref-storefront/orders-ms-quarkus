@@ -9,19 +9,21 @@ public class Order {
 	private int itemId;
 	private String customerId;
 	private int count;
+	private int price;
 	
 	public Order() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public Order(String id, Date date, int itemId, String customerId, int count) {
+	public Order(String id, Date date, int itemId, String customerId, int count, int price) {
 		super();
 		this.id = id;
 		this.date = date;
 		this.itemId = itemId;
 		this.customerId = customerId;
 		this.count = count;
+		this.price = price;
 	}
 	
 	public String getId() {
@@ -54,11 +56,17 @@ public class Order {
 	public void setCount(int count) {
 		this.count = count;
 	}
+	public int getPrice() {
+		return price;
+	}
+	public void setPrice(int price) {
+		this.price = price;
+	}
 
 	@Override
 	public String toString() {
 		return "Order [id=" + id + ", date=" + date + ", itemId=" + itemId + ", customerId=" + customerId + ", count="
-				+ count + "]";
+				+ count + ", price=" + price + "]";
 	}
 
 }
