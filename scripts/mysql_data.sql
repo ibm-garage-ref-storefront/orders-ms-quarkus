@@ -5,5 +5,6 @@ create table if not exists orders (
    itemId int not null,
    customerId varchar(64) not null,
    count int not null,
-   date timestamp not null
+   date timestamp not null,
+   price int not null
 );
